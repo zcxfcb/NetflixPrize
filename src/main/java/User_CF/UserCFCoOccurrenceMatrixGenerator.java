@@ -1,5 +1,8 @@
 import java.io.IOException;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.IntWritable;
@@ -11,8 +14,21 @@ import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 
-public class CoOccurrenceMatrixGenerator {
+/**
+ * This class describes the relationship between each user. The benchmark is the common movies they
+ * have watched. The more movies they have watched, the more similar of the two user(we ignore their
+ * preferences toward the movie at this step).
+ */
+public class UserCFCoOccurrenceMatrixGenerator {
 	public static class MatrixGeneratorMapper extends Mapper<LongWritable, Text, Text, IntWritable> {
+		Map<String, List<String>> movieToUsers;
+
+		private Map initializeMap() {
+			if (movieToUsers == null) {
+				movieToUsers = new HashMap<>();
+			}
+			return movieToUsers;
+		}
 
 		// map method
 		@Override
@@ -20,16 +36,16 @@ public class CoOccurrenceMatrixGenerator {
 			//value = userid \t movie1: rating, movie2: rating...
 			//key = movie1: movie2 value = 1
 			String line = value.toString().trim();
-			String[] user_movieRatings = line.split("\t");
-			String[] movie_ratings = user_movieRatings[1].split(",");
+			String[] movie_userRatings = line.split("\t");
+			String[] user_ratings = movie_userRatings[1].split(",");
 
 			//{movie1:rating, movie2:rating..}
-			for(int i = 0; i < movie_ratings.length; i++) {
-				String movie1 = movie_ratings[i].trim().split(":")[0];
+			for(int i = 0; i < user_ratings.length; i++) {
+				String user1 = user_ratings[i].trim().split(":")[0];
 				
-				for(int j = 0; j < movie_ratings.length; j++) {
-					String movie2 = movie_ratings[j].trim().split(":")[0];
-					context.write(new Text(movie1 + ":" + movie2), new IntWritable(1));
+				for(int j = 0; j < user_ratings.length; j++) {
+					String user2 = user_ratings[j].trim().split(":")[0];
+					context.write(new Text(user1 + ":" + user2), new IntWritable(1));
 				}
 			}
 			
@@ -41,7 +57,7 @@ public class CoOccurrenceMatrixGenerator {
 		@Override
 		public void reduce(Text key, Iterable<IntWritable> values, Context context)
 				throws IOException, InterruptedException {
-			//key movie1:movie2 value = iterable<1, 1, 1>
+			//key user1:user2 value = iterable<1, 1, 1>
 			int sum = 0;
 			while(values.iterator().hasNext()) {
 				sum += values.iterator().next().get();
@@ -59,7 +75,7 @@ public class CoOccurrenceMatrixGenerator {
 		job.setMapperClass(MatrixGeneratorMapper.class);
 		job.setReducerClass(MatrixGeneratorReducer.class);
 		
-		job.setJarByClass(CoOccurrenceMatrixGenerator.class);
+		job.setJarByClass(UserCFCoOccurrenceMatrixGenerator.class);
 		
 		job.setInputFormatClass(TextInputFormat.class);
 		job.setOutputFormatClass(TextOutputFormat.class);

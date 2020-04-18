@@ -52,7 +52,7 @@ public class Sum {
         job.setMapperClass(SumMapper.class);
         job.setReducerClass(SumReducer.class);
 
-        job.setJarByClass(Sum.class);
+        job.setJarByClass(UserCFSum.class);
 
         job.setInputFormatClass(TextInputFormat.class);
         job.setOutputFormatClass(TextOutputFormat.class);
