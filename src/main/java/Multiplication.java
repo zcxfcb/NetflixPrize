@@ -47,11 +47,15 @@ public class Multiplication {
 
 			//input: user,movie,rating
 			String[] line = value.toString().split(",");
-			context.write(new Text(line[1]), new Text(line[0] + ":" + line[2]));
+			context.write(new Text(line[1]), new Text(String.format("%s:%s", line[0], line[2])));
 		}
 	}
 
 	public static class MultiplicationReducer extends Reducer<Text, Text, Text, DoubleWritable> {
+
+		private static final String RELATION_IDENTIFIER = "=";
+		private static final String RATING_IDENTIFIER = ":";
+
 		// reduce method
 		@Override
 		public void reduce(Text key, Iterable<Text> values, Context context)
@@ -61,16 +65,7 @@ public class Multiplication {
 			Map<String, Double> relationMap = new HashMap<String, Double>();
 			Map<String, Double> ratingMap = new HashMap<String, Double>();
 
-			for (Text value: values) {
-				if(value.toString().contains("=")) {
-					String[] movie_relation = value.toString().split("=");
-					relationMap.put(movie_relation[0], Double.parseDouble(movie_relation[1]));
-				}
-				else {
-					String[] user_rating = value.toString().split(":");
-					ratingMap.put(user_rating[0], Double.parseDouble(user_rating[1]));
-				}
-			}
+			fillRatingMapAndRelationMap(values, relationMap, ratingMap);
 
 			for(Map.Entry<String, Double> entry: relationMap.entrySet()) {
 				String movie = entry.getKey();
@@ -82,8 +77,25 @@ public class Multiplication {
 					context.write(new Text(user + ":" + movie), new DoubleWritable(relation*rating));
 				}
 			}
+
+		}
+
+		private void fillRatingMapAndRelationMap(Iterable<Text> values, Map<String, Double>relationMap, Map<String, Double> ratingMap) {
+
+			for (Text value: values) {
+				if(value.toString().contains(RELATION_IDENTIFIER)) {
+					String[] movieRelation = value.toString().split(RELATION_IDENTIFIER);
+					relationMap.put(movieRelation[0], Double.parseDouble(movieRelation[1]));
+				}
+				else {
+					String[] userRating = value.toString().split(RATING_IDENTIFIER);
+					ratingMap.put(userRating[0], Double.parseDouble(userRating[1]));
+				}
+			}
+
 		}
 	}
+
 
 
 	public static void main(String[] args) throws Exception {
