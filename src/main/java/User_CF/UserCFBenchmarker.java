@@ -56,7 +56,7 @@ public class UserCFBenchmarker {
     }
 
     protected void cleanup(Context context) throws IOException, InterruptedException {
-      System.out.println(variance);
+      System.out.println("variance for User_CF:" + variance);
     }
   }
 
