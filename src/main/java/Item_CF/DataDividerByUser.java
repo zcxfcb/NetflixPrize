@@ -48,7 +48,7 @@ public class DataDividerByUser {
 		job.setMapperClass(DataDividerMapper.class);
 		job.setReducerClass(DataDividerReducer.class);
 
-		job.setJarByClass(DataDividerByUser.class);
+		job.setJarByClass(UserCFDataDividerByUser.class);
 
 		job.setInputFormatClass(TextInputFormat.class);
 		job.setOutputFormatClass(TextOutputFormat.class);

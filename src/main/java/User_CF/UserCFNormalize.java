@@ -1,6 +1,5 @@
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
@@ -13,7 +12,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-public class Normalize {
+public class UserCFNormalize {
 
     public static class NormalizeMapper extends Mapper<LongWritable, Text, Text, Text> {
 
@@ -21,11 +20,11 @@ public class Normalize {
         @Override
         public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
 
-            //movieA:movieB \t relation
-            String[] movieRelation = value.toString().trim().split("\t");
-            String[] movies = movieRelation[0].split(":");
+            //userA:userB \t relation
+            String[] user_relation = value.toString().trim().split("\t");
+            String[] users = user_relation[0].split(":");
 
-            context.write(new Text(movies[0]), new Text(String.format("%s:%s", movies[1], movieRelation[1])));
+            context.write(new Text(users[0]), new Text(users[1] + ":" + user_relation[1]));
         }
     }
 
@@ -35,24 +34,21 @@ public class Normalize {
         public void reduce(Text key, Iterable<Text> values, Context context)
                 throws IOException, InterruptedException {
 
-            //key = movieA, value=<movieB:relation, movieC:relation...>
+            //key = userA, value=<userB:relation, userC:relation...>
             int sum = 0;
             Map<String, Integer> map = new HashMap<String, Integer>();
             while (values.iterator().hasNext()) {
-                String[] movieRelation = values.iterator().next().toString().split(":");
-                int relation = Integer.parseInt(movieRelation[1]);
+                String[] user_relation = values.iterator().next().toString().split(":");
+                int relation = Integer.parseInt(user_relation[1]);
                 sum += relation;
-                map.put(movieRelation[0], relation);
+                map.put(user_relation[0], relation);
             }
 
             for(Map.Entry<String, Integer> entry: map.entrySet()) {
                 String outputKey = entry.getKey();
-                String outputValue = key.toString() + "=" + (double)entry.getValue()/sum;
+                String outputValue = key.toString() + "=" + (double)entry.getValue() / sum;
                 context.write(new Text(outputKey), new Text(outputValue));
             }
-
-
-
         }
     }
 
@@ -64,7 +60,7 @@ public class Normalize {
         job.setMapperClass(NormalizeMapper.class);
         job.setReducerClass(NormalizeReducer.class);
 
-        job.setJarByClass(Normalize.class);
+        job.setJarByClass(UserCFNormalize.class);
 
         job.setInputFormatClass(TextInputFormat.class);
         job.setOutputFormatClass(TextOutputFormat.class);

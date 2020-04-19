@@ -11,8 +11,7 @@ import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 
 import java.io.IOException;
 
-
-public class Sum {
+public class UserCFSum {
 
     public static class SumMapper extends Mapper<LongWritable, Text, Text, DoubleWritable> {
 
@@ -50,7 +49,7 @@ public class Sum {
         job.setMapperClass(SumMapper.class);
         job.setReducerClass(SumReducer.class);
 
-        job.setJarByClass(Sum.class);
+        job.setJarByClass(UserCFSum.class);
 
         job.setInputFormatClass(TextInputFormat.class);
         job.setOutputFormatClass(TextOutputFormat.class);

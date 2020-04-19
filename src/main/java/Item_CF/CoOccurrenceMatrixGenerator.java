@@ -60,7 +60,7 @@ public class CoOccurrenceMatrixGenerator {
 		job.setMapperClass(MatrixGeneratorMapper.class);
 		job.setReducerClass(MatrixGeneratorReducer.class);
 		
-		job.setJarByClass(CoOccurrenceMatrixGenerator.class);
+		job.setJarByClass(UserCFCoOccurrenceMatrixGenerator.class);
 		
 		job.setInputFormatClass(TextInputFormat.class);
 		job.setOutputFormatClass(TextOutputFormat.class);
