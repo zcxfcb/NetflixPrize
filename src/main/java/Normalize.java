@@ -22,10 +22,10 @@ public class Normalize {
         public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
 
             //movieA:movieB \t relation
-            String[] movie_relation = value.toString().trim().split("\t");
-            String[] movies = movie_relation[0].split(":");
+            String[] movieRelation = value.toString().trim().split("\t");
+            String[] movies = movieRelation[0].split(":");
 
-            context.write(new Text(movies[0]), new Text(movies[1] + ":" + movie_relation[1]));
+            context.write(new Text(movies[0]), new Text(String.format("%s:%s", movies[1], movieRelation[1])));
         }
     }
 
@@ -39,10 +39,10 @@ public class Normalize {
             int sum = 0;
             Map<String, Integer> map = new HashMap<String, Integer>();
             while (values.iterator().hasNext()) {
-                String[] movie_relation = values.iterator().next().toString().split(":");
-                int relation = Integer.parseInt(movie_relation[1]);
+                String[] movieRelation = values.iterator().next().toString().split(":");
+                int relation = Integer.parseInt(movieRelation[1]);
                 sum += relation;
-                map.put(movie_relation[0], relation);
+                map.put(movieRelation[0], relation);
             }
 
             for(Map.Entry<String, Integer> entry: map.entrySet()) {
@@ -50,6 +50,9 @@ public class Normalize {
                 String outputValue = key.toString() + "=" + (double)entry.getValue()/sum;
                 context.write(new Text(outputKey), new Text(outputValue));
             }
+
+
+
         }
     }
 
