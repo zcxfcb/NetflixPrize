@@ -35,7 +35,9 @@ public class Benchmarker {
 
   public static class BenchmarkingReducer extends Reducer<Text, Text, Text, Text> {
 
-    private double variance = 0;
+    private Double squareSum = 0.0;
+    private Integer count = 0;
+    private Integer precision = 100000;
 
     @Override
     public void reduce(Text key, Iterable<Text>values, Context context) throws IOException, InterruptedException {
@@ -51,13 +53,21 @@ public class Benchmarker {
         }
       }
       if (cnt == 2) {
-        variance += Math.pow(realRating - predictedRating, 2);
+        squareSum += Math.pow(realRating - predictedRating, 2);
+        count++;
+      } else if (cnt > 2) {
+        throw new InterruptedException("more than 2 record found for:" + key);
       }
-
     }
 
     protected void cleanup(Context context) throws IOException, InterruptedException {
-      System.out.println("variance for Item_CF:" + variance);
+      System.out.println("variance for Item_CF:" + squareSum);
+      long convertedSquareSum = (long) (squareSum * precision);
+      context.getCounter(Counters.MEAN_DIFF_SQUARE_SUM)
+          .increment(convertedSquareSum);
+      context.getCounter(Counters.RECORD_COUNT)
+          .increment(count);
+      context.write(new Text(squareSum.toString()), new Text(count.toString()));
     }
   }
 
@@ -71,6 +81,7 @@ public class Benchmarker {
     job.setMapperClass(RealDataMapper.class);
     job.setMapperClass(PredictionMapper.class);
     job.setReducerClass(BenchmarkingReducer.class);
+    job.setNumReduceTasks(1);
 
     job.setJarByClass(Benchmarker.class);
 
@@ -86,5 +97,4 @@ public class Benchmarker {
 
     System.exit(job.waitForCompletion(true) ? 0 : 1);
   }
-
 }

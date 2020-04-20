@@ -2,7 +2,7 @@
 public class UserCFDriver {
 	public static void main(String[] args) throws Exception {
 
-		Preprocessor dataDividerByUser = new Preprocessor();
+		UserCFDataDividerByUser dataDividerByUser = new UserCFDataDividerByUser();
 		UserCFCoOccurrenceMatrixGenerator coOccurrenceMatrixGenerator = new UserCFCoOccurrenceMatrixGenerator();
 		UserCFNormalize normalize = new UserCFNormalize();
 		UserCFMultiplication multiplication = new UserCFMultiplication();
@@ -29,7 +29,6 @@ public class UserCFDriver {
 		multiplication.main(path4);
 		sum.main(path5);
 		benchmarker.main(path6);
-
 	}
 
 }

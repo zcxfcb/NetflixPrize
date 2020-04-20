@@ -50,7 +50,7 @@ public class UserCFDataDividerByUser {
 		job.setMapperClass(DataDividerMapper.class);
 		job.setReducerClass(DataDividerReducer.class);
 
-		job.setJarByClass(Preprocessor.class);
+		job.setJarByClass(DataDividerByUser.class);
 
 		job.setInputFormatClass(TextInputFormat.class);
 		job.setOutputFormatClass(TextOutputFormat.class);
