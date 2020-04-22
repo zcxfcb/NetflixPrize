@@ -1,6 +1,8 @@
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
@@ -8,10 +10,6 @@ import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
-
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 
 public class Normalize {
 
@@ -22,10 +20,10 @@ public class Normalize {
         public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
 
             //movieA:movieB \t relation
-            String[] movieRelation = value.toString().trim().split("\t");
-            String[] movies = movieRelation[0].split(":");
+            String[] movie_relation = value.toString().trim().split("\t");
+            String[] movies = movie_relation[0].split(":");
 
-            context.write(new Text(movies[0]), new Text(String.format("%s:%s", movies[1], movieRelation[1])));
+            context.write(new Text(movies[0]), new Text(movies[1] + ":" + movie_relation[1]));
         }
     }
 
@@ -39,10 +37,10 @@ public class Normalize {
             int sum = 0;
             Map<String, Integer> map = new HashMap<String, Integer>();
             while (values.iterator().hasNext()) {
-                String[] movieRelation = values.iterator().next().toString().split(":");
-                int relation = Integer.parseInt(movieRelation[1]);
+                String[] movie_relation = values.iterator().next().toString().split(":");
+                int relation = Integer.parseInt(movie_relation[1]);
                 sum += relation;
-                map.put(movieRelation[0], relation);
+                map.put(movie_relation[0], relation);
             }
 
             for(Map.Entry<String, Integer> entry: map.entrySet()) {
@@ -50,9 +48,6 @@ public class Normalize {
                 String outputValue = key.toString() + "=" + (double)entry.getValue()/sum;
                 context.write(new Text(outputKey), new Text(outputValue));
             }
-
-
-
         }
     }
 
