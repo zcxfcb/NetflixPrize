@@ -1,4 +1,5 @@
 import java.io.IOException;
+import java.util.PriorityQueue;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
@@ -32,11 +33,24 @@ public class DataDividerByUser {
 				throws IOException, InterruptedException {
 
 			StringBuilder sb = new StringBuilder();
+			PriorityQueue<String> top5 = new PriorityQueue<>((x, y) -> {
+				String[] arrX = x.split(":");
+				String[] arrY = y.split(":");
+				return (int) Math.round(10 * (Double.valueOf(arrX[1]) - Double.valueOf(arrY[1])));
+			});
 			while (values.iterator().hasNext()) {
-				sb.append("," + values.iterator().next());
+				top5.add(values.iterator().next().toString());
+				while (top5.size() > 5) {
+					top5.poll();
+				}
+			}
+
+			while (!top5.isEmpty()) {
+				sb.append("," + top5.poll());
 			}
 			//key = user; value=movie1:rating, movie2:rating...
-			context.write(key, new Text(sb.toString().substring(1)));
+//			System.out.println(key.toString() + "," + sb.substring(1));
+			context.write(key, new Text(sb.substring(1)));
 		}
 	}
 
